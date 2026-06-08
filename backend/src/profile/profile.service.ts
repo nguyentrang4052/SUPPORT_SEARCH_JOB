@@ -1,0 +1,341 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { writeFileSync, existsSync, mkdirSync } from 'fs';
+import { join } from 'path';
+import { PrismaService } from '../../prisma/prisma.service';
+import { UpdateProfileDto, UpdateUserProfileDto } from '../dto/profile.dto';
+
+@Injectable()
+export class ProfileService {
+  constructor(private prisma: PrismaService) {}
+
+  async getProfileByAccountID(accountID: number) {
+    const user = await this.prisma.user.findFirst({
+      where: { accountID },
+      select: { userID: true },
+    });
+    if (!user) throw new NotFoundException('User not found');
+    return this.getProfile(user.userID);
+  }
+
+  async getProfile(userID: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { userID },
+      include: {
+        account: { select: { email: true, provider: true, createdAt: true } },
+        profiles: {
+          include: { industry: true },
+        },
+        skills: { include: { skill: { include: { industry: true } } } },
+        // cvs: { select: { id: true, title: true } },
+        subscriptions: {
+          where: { status: 'active' },
+          orderBy: { expiresAt: 'desc' },
+          take: 1,
+          include: { plan: { select: { displayName: true, name: true } } },
+        },
+      },
+    });
+
+    if (!user) throw new NotFoundException('User not found');
+
+    const profile = user.profiles ?? null;
+    const activeSub = user.subscriptions[0] ?? null;
+
+    return {
+      userID: user.userID,
+      fullName: user.fullName,
+      avatar: user.avatar,
+      birthYear: user.birthYear,
+      phone: user.phone,
+      gender: user.gender,
+      address: user.address,
+      email: user.account.email,
+      provider: user.account.provider,
+      memberSince: user.account.createdAt,
+      jobTitle: profile?.jobTitle ?? null,
+      experienceYear: profile?.experienceYear ?? null,
+      careerLevel: profile?.careerLevel ?? null,
+      expectedSalary: profile?.expectedSalary ?? null,
+      workingType: profile?.workingType ?? null,
+      industry: profile?.industry
+        ? { id: profile.industry.id, name: profile.industry.name }
+        : null,
+      skills: user.skills.map((s) => ({
+        id: s.skill.skillID,
+        name: s.skill.name,
+        industry: s.skill.industry.name,
+      })),
+      // cvs: user.cvs,
+      plan: activeSub
+        ? {
+          name: activeSub.plan.name,
+          displayName: activeSub.plan.displayName,
+          expiresAt: activeSub.expiresAt,
+        }
+        : { name: 'free', displayName: 'Free', expiresAt: null },
+    };
+  }
+
+  async updateProfile(userID: number, dto: UpdateProfileDto) {
+    const user = await this.prisma.user.findUnique({ where: { userID } });
+    if (!user) throw new NotFoundException('User not found');
+
+    return this.prisma.user.update({
+      where: { userID },
+      data: {
+        fullName: dto.fullName,
+        birthYear: dto.birthYear,
+        phone: dto.phone,
+        gender: dto.gender,
+        address: dto.address,
+      },
+    });
+  }
+
+  async updateUserProfile(userID: number, dto: UpdateUserProfileDto) {
+    const user = await this.prisma.user.findUnique({ where: { userID } });
+    if (!user) throw new NotFoundException('User not found');
+
+    const data: any = {
+      jobTitle: dto.jobTitle,
+      experienceYear: dto.experienceYear,
+      careerLevel: dto.careerLevel,
+      expectedSalary: dto.expectedSalary,
+      workingType: dto.workingType,
+      industryID: dto.industryId ?? null,
+    };
+
+    const existing = await this.prisma.userProfile.findUnique({
+      where: { userID },
+    });
+
+    if (existing) {
+      return this.prisma.userProfile.update({
+        where: { id: existing.id },
+        data,
+        include: { industry: true },
+      });
+    }
+
+    return this.prisma.userProfile.create({
+      data: { userID, ...data },
+      include: { industry: true },
+    });
+  }
+
+  async getSkills(userID: number) {
+    const userSkills = await this.prisma.userSkill.findMany({
+      where: { userID },
+      include: { skill: { include: { industry: true } } },
+    });
+
+    return userSkills.map((us) => ({
+      id: us.skill.skillID,
+      name: us.skill.name,
+      industry: us.skill.industry.name,
+    }));
+  }
+
+  async getAllSkills() {
+    const skills = await this.prisma.skill.findMany({
+      include: { industry: { select: { name: true } } },
+      orderBy: { name: 'asc' },
+    });
+    return skills.map((s) => ({
+      skillID: s.skillID,
+      name: s.name,
+      industry: s.industry.name,
+    }));
+  }
+
+  async addSkill(userID: number, skillID: number) {
+    const user = await this.prisma.user.findUnique({ where: { userID } });
+    if (!user) throw new NotFoundException('User not found');
+
+    const skill = await this.prisma.skill.findUnique({ where: { skillID } });
+    if (!skill) throw new NotFoundException('Skill not found');
+
+    const existing = await this.prisma.userSkill.findFirst({
+      where: { userID, skillID },
+    });
+    if (existing) return existing;
+
+    return this.prisma.userSkill.create({
+      data: { userID, skillID },
+      include: { skill: true },
+    });
+  }
+
+  async removeSkill(userID: number, skillID: number) {
+    const existing = await this.prisma.userSkill.findFirst({
+      where: { userID, skillID },
+    });
+    if (!existing) throw new NotFoundException('Skill not found on user');
+
+    return this.prisma.userSkill.delete({ where: { id: existing.id } });
+  }
+
+  async getStats(userID: number): Promise<{
+    viewCount: number;
+    saveCount: number;
+    applyCount: number;
+    // recommendCount: number;
+  }> {
+    const [viewCount, saveCount, applyCount] = await Promise.all([
+      this.prisma.userBehavior.count({ where: { userID, action: 'view' } }),
+      this.prisma.savedJob.count({ where: { userID } }),
+      // this.prisma.applyHistory.count({ where: { userID } }),
+      this.prisma.jobRecommendation.count({
+        where: { userID, matchPercent: { gt: 49 } },
+      }),
+    ]);
+
+    return { viewCount, saveCount, applyCount };
+  }
+
+  async updateAvatar(userID: number, file: Express.Multer.File) {
+    if (!file) throw new Error('No file uploaded');
+
+    const uploadDir = join(process.cwd(), 'uploads');
+
+    if (!existsSync(uploadDir)) {
+      mkdirSync(uploadDir, { recursive: true });
+    }
+
+    const fileName = `avatar_${userID}_${Date.now()}.png`;
+    const filePath = join(uploadDir, fileName);
+
+    writeFileSync(filePath, file.buffer);
+
+    const avatarUrl = `/uploads/${fileName}`;
+
+    return this.prisma.user.update({
+      where: { userID },
+      data: { avatar: avatarUrl },
+    });
+  }
+
+  async removeAvatar(userID: number) {
+    return this.prisma.user.update({
+      where: { userID },
+      data: { avatar: null },
+    });
+  }
+
+  async getInsights(userID: number) {
+    const [behaviors, savedJobs, profile] = await Promise.all([
+      this.prisma.userBehavior.findMany({
+        where: { userID, action: 'view' },
+        include: {
+          job: {
+            include: { skills: { include: { skill: true } }, industry: true },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 100,
+      }),
+      this.prisma.savedJob.findMany({
+        where: { userID },
+        include: { job: { select: { jobType: true, title: true } } },
+        take: 50,
+      }),
+      // this.prisma.applyHistory.findMany({
+      //   where: { userID },
+      //   include: { job: { select: { salary: true } } },
+      //   orderBy: { appliedAt: 'desc' },
+      //   take: 50,
+      // }),
+      this.prisma.userProfile.findUnique({
+        where: { userID },
+        include: { industry: true }
+      }),
+    ]);
+
+    const skillCount = new Map<string, number>();
+    for (const b of behaviors) {
+      for (const js of b.job.skills) {
+        const name = js.skill.name;
+        skillCount.set(name, (skillCount.get(name) ?? 0) + 1);
+      }
+    }
+    const topSkills = [...skillCount.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([name]) => name);
+
+    const indCount = new Map<string, number>();
+    for (const b of behaviors) {
+      const ind = b.job.industry?.name;
+      if (ind) indCount.set(ind, (indCount.get(ind) ?? 0) + 1);
+    }
+    const topIndustries = [...indCount.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 2)
+      .map(([name]) => name);
+
+    const remoteCount = savedJobs.filter((s) =>
+      ['remote', 'hybrid'].some((t) =>
+        s.job.jobType?.toLowerCase().includes(t),
+      ),
+    ).length;
+    const remotePct =
+      savedJobs.length > 0
+        ? Math.round((remoteCount / savedJobs.length) * 100)
+        : 0;
+
+    const insights: { icon: string; text: string; source: string }[] = [];
+    const preferences: { key: string; value: string }[] = [];
+
+    if (topSkills.length > 0) {
+      insights.push({
+        icon: '👁',
+        text: `Bạn thường xem kỹ JD có "${topSkills.join('", "')}"`,
+        source: `Từ ${behaviors.length} lần xem`,
+      });
+    }
+
+    if (savedJobs.length > 0) {
+      insights.push({
+        icon: '🔖',
+        text:
+          remotePct > 0
+            ? `${remotePct}% tin bạn lưu là Hybrid hoặc Remote`
+            : `Bạn đã lưu ${savedJobs.length} việc làm`,
+        source: `Từ ${savedJobs.length} lần lưu`,
+      });
+    }
+
+    // if (applies.length > 0) {
+    //   insights.push({
+    //     icon: '⚡',
+    //     text: `Bạn đã ứng tuyển ${applies.length} vị trí`,
+    //     source: `Tổng số lần apply`,
+    //   });
+    // }
+
+    if (topIndustries.length > 0) {
+      const total = behaviors.length || 1;
+      const topInd = topIndustries[0];
+      const pct = Math.round(((indCount.get(topInd) ?? 0) / total) * 100);
+      insights.push({
+        icon: '🏢',
+        text: `Ưu tiên ngành ${topIndustries.join(', ')} chiếm ${pct}% lượt xem`,
+        source: 'Phân tích toàn lịch sử',
+      });
+    }
+
+    if (profile?.industry)
+      preferences.push({ key: 'Ngành ưu tiên', value: profile.industry.name });
+    if (profile?.workingType)
+      preferences.push({
+        key: 'Hình thức làm việc',
+        value: profile.workingType,
+      });
+    if (profile?.expectedSalary)
+      preferences.push({ key: 'Lương kỳ vọng', value: profile.expectedSalary });
+    if (profile?.careerLevel)
+      preferences.push({ key: 'Cấp bậc', value: profile.careerLevel });
+
+    return { insights, preferences };
+  }
+}
