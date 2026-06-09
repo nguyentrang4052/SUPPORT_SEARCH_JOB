@@ -110,10 +110,10 @@ export class AIRecommendationService {
         return false;
       }
 
-      const existingRecs = await this.prisma.jobRecommendation.findMany({
+      const existingRecs = (await this.prisma.jobRecommendation.findMany({
         where: { userID },
         select: { jobID: true, matchPercent: true },
-      });
+      })) as { jobID: number; matchPercent: number }[];
 
       const existingMap = new Map(existingRecs.map((r) => [r.jobID, r]));
 
@@ -283,7 +283,7 @@ export class AIRecommendationService {
         matchPercent: score,
         reason: reasons[job.jobID] ?? this.buildDefaultReason(ctx, job, score),
       }));
-    } catch (err:any) {
+    } catch (err: any) {
       this.logger.warn(
         'Gemini reason generation failed — using default reasons',
         err?.message,
@@ -461,22 +461,22 @@ ${jobsBlock}
       }),
     ]);
 
-    const recentViewedTitles: string[] = [
-      ...new Set(
+    const recentViewedTitles = Array.from<string>(
+      new Set(
         behaviorRows
-          .filter((b) => b.action === 'view' && b.job.title)
-          .map((b) => b.job.title as string)
+          .filter((b: any) => b.action === 'view' && b.job.title)
+          .map((b: any) => b.job.title as string)
           .slice(0, 10),
       ),
-    ];
+    );
 
-    const recentViewedIndustries: string[] = [
-      ...new Set(
+    const recentViewedIndustries = Array.from<string>(
+      new Set(
         behaviorRows
-          .map((b) => b.job.industry?.name)
-          .filter((n): n is string => !!n),
-      ),
-    ];
+          .map((b: any) => b.job.industry?.name)
+          .filter((n: any): n is string => !!n)
+      )
+    );
 
     return {
       skills: skillRows.map((s) => s.skill.name),

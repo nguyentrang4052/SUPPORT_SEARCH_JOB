@@ -913,11 +913,11 @@ export class JobsService {
           where: { jobID: { in: jobIDs }, industryID: { not: null } },
           select: { jobID: true, industryID: true },
         });
-        const jobMap = new Map(jobs.map(j => [j.jobID, j.industryID]));
+        const jobMap = new Map(jobs.map(j => [j.jobID, j.industryID as number]));
         const result = new Map<number, number>();
         for (const row of rows) {
-          const indID = jobMap.get(row.jobID);
-          if (indID) result.set(indID, (result.get(indID) ?? 0) + row._count.id);
+          const indID = jobMap.get(row.jobID) as number;
+          if (indID) result.set(indID, (result.get(indID) ?? 0) + (row._count.id as number));
         }
         return result;
       }) as Promise<Map<number, number>>,
@@ -935,11 +935,11 @@ export class JobsService {
           where: { jobID: { in: jobIDs }, industryID: { not: null } },
           select: { jobID: true, industryID: true },
         });
-        const jobMap = new Map(jobs.map(j => [j.jobID, j.industryID]));
+        const jobMap = new Map(jobs.map(j => [j.jobID, j.industryID as number]));
         const result = new Map<number, number>();
         for (const row of rows) {
-          const indID = jobMap.get(row.jobID);
-          if (indID) result.set(indID, (result.get(indID) ?? 0) + row._count.id);
+          const indID = jobMap.get(row.jobID) as number;
+          if (indID) result.set(indID, (result.get(indID) ?? 0) + (row._count.id as number));
         }
         return result;
       }) as Promise<Map<number, number>>,
