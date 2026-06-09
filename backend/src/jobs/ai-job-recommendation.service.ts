@@ -110,12 +110,16 @@ export class AIRecommendationService {
         return false;
       }
 
-      const existingRecs = await this.prisma.jobRecommendation.findMany({
-        where: { userID },
-        select: { jobID: true, matchPercent: true },
-      });
+      const existingRecs: { jobID: number; matchPercent: number }[] =
+        await this.prisma.jobRecommendation.findMany({
+          where: { userID },
+          select: { jobID: true, matchPercent: true },
+        });
 
-      const existingMap = new Map(existingRecs.map((r) => [r.jobID, r]));
+
+      const existingMap = new Map<number, { jobID: number; matchPercent: number }>(
+        existingRecs.map((r) => [r.jobID, r]),
+      );
 
       const hasChanged =
         existingRecs.length !== scores.length ||
@@ -283,7 +287,7 @@ export class AIRecommendationService {
         matchPercent: score,
         reason: reasons[job.jobID] ?? this.buildDefaultReason(ctx, job, score),
       }));
-    } catch (err:any) {
+    } catch (err: any) {
       this.logger.warn(
         'Gemini reason generation failed — using default reasons',
         err?.message,
@@ -329,8 +333,8 @@ ${jobsBlock}
 - Format: [{"jobID": number, "reason": "1 câu tiếng Việt"}]
 - Reason dựa trên điểm nổi bật nhất: skill, ngành, mức lương, kinh nghiệm.`;
 
-    const raw = await this.gemini.scoreJobs(prompt);
-    const arr: { jobID: number; reason: string }[] = Array.isArray(raw)
+    const raw: unknown = await this.gemini.scoreJobs(prompt);
+    const arr = Array.isArray(raw)
       ? raw
       : this.parseReasonArray(
         typeof raw === 'string' ? raw : JSON.stringify(raw),
@@ -461,22 +465,22 @@ ${jobsBlock}
       }),
     ]);
 
-    const recentViewedTitles: string[] = [
-      ...new Set(
+    const recentViewedTitles = Array.from(
+      new Set(
         behaviorRows
           .filter((b) => b.action === 'view' && b.job.title)
           .map((b) => b.job.title as string)
           .slice(0, 10),
       ),
-    ];
+    );
 
-    const recentViewedIndustries: string[] = [
-      ...new Set(
+    const recentViewedIndustries = Array.from(
+      new Set(
         behaviorRows
-          .map((b) => b.job.industry?.name)
-          .filter((n): n is string => !!n),
-      ),
-    ];
+          .map(b => b.job.industry?.name)
+          .filter((n): n is string => !!n)
+      )
+    );
 
     return {
       skills: skillRows.map((s) => s.skill.name),
