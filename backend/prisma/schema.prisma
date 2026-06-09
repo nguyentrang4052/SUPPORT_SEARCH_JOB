@@ -268,7 +268,7 @@ model RefundRequest {
   accountNumber String
   accountName   String
   bankName      String
-  status        String   @default("pending") // pending | approved | rejected
+  status        String   @default("pending") 
   createdAt     DateTime @default(now())
   resolvedAt    DateTime?
   note          String?  
@@ -281,9 +281,9 @@ model RefundRequest {
 model CVAnalysis {
   id         Int      @id @default(autoincrement())
   userID     Int
-  fileHash   String   @unique // SHA256 hash để kiểm tra trùng file
+  fileHash   String   @unique 
   filename   String
-  result     Json     // Lưu toàn bộ kết quả phân tích JSON
+  result     Json     
   
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -365,7 +365,7 @@ model JobAlert {
 model Notification {
   id        Int       @id @default(autoincrement())
   userID    Int
-  type      String    // 'subscription_expiry' | 'job_deadline' | 'job_alert' | 'payment_success'
+  type      String    
   title     String
   body      String
   isRead    Boolean   @default(false)
@@ -382,7 +382,7 @@ model SearchHistory {
   id        Int      @id @default(autoincrement())
   accountID Int
   keyword   String
-  type      String   @default("job") // "job" | "company"
+  type      String   @default("job") 
   createdAt DateTime @default(now())
   account   Account  @relation(fields: [accountID], references: [accountID])
 
