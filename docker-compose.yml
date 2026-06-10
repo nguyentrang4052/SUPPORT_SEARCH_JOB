@@ -2,7 +2,7 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - 127.0.0.1:5173:5173
+      - 5173:5173
     depends_on:
       - backend
     volumes:
@@ -24,14 +24,14 @@ services:
     env_file:
      - ./ai_service/.env
     ports:
-      - 0.0.0.0:8000:8000
+      - 8000:8000
 
   crawler:
     build: ./crawler
     env_file:
      - ./crawler/.env
     ports:
-      - 0.0.0.0:8001:8001
+      - 8001:8001
     depends_on:
       - db
       - redis
