@@ -46,7 +46,7 @@ import { NotificationModule } from './notification/notification.module';
         store: await redisStore({
           socket: {
             host: process.env.REDIS_HOST || 'localhost',
-            port: parse(process.env.REDIS_PORT) || 6379,
+            port: parseInt(process.env.REDIS_PORT) || 6379,
           },
           ttl: 3600, // 1 giờ (giây)
         }),
