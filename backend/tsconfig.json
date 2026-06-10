@@ -18,7 +18,7 @@
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": false,
-    "useDefineForClassFields": false
+    "useDefineForClassFields": false,
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
     "strictBindCallApply": false,
