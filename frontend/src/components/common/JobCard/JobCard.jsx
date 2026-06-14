@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './JobCard.css';
 import Badge from '../Badge/Badge';
 
-const API_BASE = 'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 function JobCard({ job, showMatch = true, showActions = true, token, onSave, onCompanyClick }) {
   const [saved, setSaved] = useState(job?.isSaved ?? false);
@@ -22,7 +22,7 @@ function JobCard({ job, showMatch = true, showActions = true, token, onSave, onC
     e.stopPropagation();
     if (!token) { setShowLoginModal(true); return; }
     try {
-      await fetch(`${API_BASE}/jobs/${job.id}/save`, {
+      await fetch(`${API_URL}/jobs/${job.id}/save`, {
         method: saved ? 'DELETE' : 'POST',
         headers,
       });
@@ -72,7 +72,7 @@ function JobCard({ job, showMatch = true, showActions = true, token, onSave, onC
 
   const trackBehavior = useCallback((jobID, action) => {
     if (!token) return;
-    fetch(`${API_BASE}/jobs/${jobID}/track`, {
+    fetch(`${API_URL}/jobs/${jobID}/track`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ action }),

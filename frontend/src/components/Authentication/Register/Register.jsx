@@ -133,6 +133,8 @@ function isValidBirthYear(year) {
   return y >= 1950 && y <= current - 16
 }
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
 export default function Register() {
   const [step, setStep] = useState(1)
   const [showPw, setShowPw] = useState(false)
@@ -178,7 +180,7 @@ export default function Register() {
 
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:3000/api/auth/register/initiate', {
+      const res = await fetch(`${API_URL}/auth/register/initiate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -232,7 +234,7 @@ export default function Register() {
     if (otp.length < 6) { setError('Vui lòng nhập đủ 6 chữ số OTP.'); return }
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:3000/api/auth/register/complete', {
+      const res = await fetch(`${API_URL}/auth/register/complete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: form.email, otp }),
@@ -250,7 +252,7 @@ export default function Register() {
   const handleResendOtp = async () => {
     if (resendCooldown > 0) return
     try {
-      const res = await fetch('http://localhost:3000/api/auth/register/resend-otp', {
+      const res = await fetch(`${API_URL}/auth/register/resend-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: form.email }),
@@ -308,7 +310,7 @@ export default function Register() {
               <h2 className="rg-card-title">Tạo tài khoản</h2>
               <p className="rg-card-sub">Đã có tài khoản? <a onClick={() => navigate("/login")}>Đăng nhập →</a></p>
               <div className="rg-socials">
-                <button className="rg-social-btn" onClick={() => window.location.href = 'http://localhost:3000/api/auth/google'}>
+                <button className="rg-social-btn" onClick={() => window.location.href = `${API_URL}/auth/google`}>
                   <IconGoogle /> Google
                 </button>
               </div>

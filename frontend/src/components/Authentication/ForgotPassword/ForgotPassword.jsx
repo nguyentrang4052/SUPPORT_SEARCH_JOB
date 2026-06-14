@@ -43,6 +43,7 @@ function getStrength(pw) {
   }
 }
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 export default function ForgotPassword({ onGoLogin }) {
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
@@ -72,7 +73,7 @@ export default function ForgotPassword({ onGoLogin }) {
     if (!email || !/\S+@\S+\.\S+/.test(email)) { setError('Email không hợp lệ.'); return }
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:3000/api/auth/forgot-password', {
+      const res = await fetch(`${API_URL}/auth/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -105,7 +106,7 @@ export default function ForgotPassword({ onGoLogin }) {
     if (otp.join('').length < 6) { setError('Vui lòng nhập đầy đủ 6 chữ số.'); return }
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:3000/api/auth/verify-otp', {
+      const res = await fetch(`${API_URL}/auth/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp: otp.join('') }),
@@ -126,7 +127,7 @@ export default function ForgotPassword({ onGoLogin }) {
     if (newPw !== confirmPw) { setError('Mật khẩu xác nhận không khớp.'); return }
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:3000/api/auth/reset-password', {
+      const res = await fetch(`${API_URL}/auth/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp: otp.join(''), newPassword: newPw }),

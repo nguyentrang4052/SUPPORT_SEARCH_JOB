@@ -31,7 +31,7 @@ const IconGoogle = () => (
   </svg>
 )
 
-
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 export default function Login({ onGoRegister, onGoForgot, onLoginSuccess }) {
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -48,7 +48,7 @@ export default function Login({ onGoRegister, onGoForgot, onLoginSuccess }) {
     if (!email || !password) { setError('Vui lòng điền đầy đủ thông tin.'); return }
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:3000/api/auth/login', {
+      const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -78,7 +78,7 @@ export default function Login({ onGoRegister, onGoForgot, onLoginSuccess }) {
   }
 
   const handleGoogle = () => {
-    window.location.href = 'http://localhost:3000/api/auth/google'
+    window.location.href = `${API_URL}/auth/google`
   }
 
   useEffect(() => {
