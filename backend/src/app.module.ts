@@ -42,18 +42,18 @@ import { NotificationModule } from './notification/notification.module';
     NotificationModule,
     CacheModule.registerAsync({
       useFactory: async () => {
-	console.log('REDIS_HOST =', process.env.REDIS_HOST);
-    	console.log('REDIS_PORT =', process.env.REDIS_PORT);
-    	console.log('REDIS_URL =', process.env.REDIS_URL);
-return {
-        store: await redisStore({
-          socket: {
-            host: process.env.REDIS_HOST || 'localhost',
-            port: parseInt(process.env.REDIS_PORT) || 6379,
-          },
-          ttl: 3600, // 1 giờ (giây)
-        }),
-      },
+        console.log('REDIS_HOST =', process.env.REDIS_HOST);
+        console.log('REDIS_PORT =', process.env.REDIS_PORT);
+        console.log('REDIS_URL =', process.env.REDIS_URL);
+        return {
+          store: await redisStore({
+            socket: {
+              host: process.env.REDIS_HOST || 'localhost',
+              port: parseInt(process.env.REDIS_PORT) || 6379,
+            },
+            ttl: 3600, // 1 giờ (giây)
+          }),
+        },
 },
     }),
     ChatbotModule,
