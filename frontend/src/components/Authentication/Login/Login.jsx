@@ -78,6 +78,7 @@ export default function Login({ onGoRegister, onGoForgot, onLoginSuccess }) {
   }
 
   const handleGoogle = () => {
+    console.log("API_URL =", import.meta.env.VITE_API_URL);
     window.location.href = `${API_URL}/auth/google`
   }
 
