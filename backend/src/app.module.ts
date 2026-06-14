@@ -42,9 +42,9 @@ import { NotificationModule } from './notification/notification.module';
     NotificationModule,
     CacheModule.registerAsync({
       useFactory: async () => ({
-	console.log('REDIS_HOST =', process.env.REDIS_HOST),
-    	console.log('REDIS_PORT =', process.env.REDIS_PORT),
-    	console.log('REDIS_URL =', process.env.REDIS_URL),
+	console.log('REDIS_HOST =', process.env.REDIS_HOST);
+    	console.log('REDIS_PORT =', process.env.REDIS_PORT);
+    	console.log('REDIS_URL =', process.env.REDIS_URL);
         store: await redisStore({
           socket: {
             host: process.env.REDIS_HOST || 'localhost',
