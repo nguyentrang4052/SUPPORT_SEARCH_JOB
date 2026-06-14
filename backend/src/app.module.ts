@@ -59,5 +59,7 @@ import { NotificationModule } from './notification/notification.module';
   ],
   controllers: [AppController],
   providers: [AppService],
+console.log('REDIS_HOST:', process.env.REDIS_HOST);
+console.log('REDIS_PORT:', process.env.REDIS_PORT);
 })
 export class AppModule { }
