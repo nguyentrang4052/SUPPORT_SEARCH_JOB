@@ -41,10 +41,11 @@ import { NotificationModule } from './notification/notification.module';
     AdminModule,
     NotificationModule,
     CacheModule.registerAsync({
-      useFactory: async () => ({
+      useFactory: async () => {
 	console.log('REDIS_HOST =', process.env.REDIS_HOST);
     	console.log('REDIS_PORT =', process.env.REDIS_PORT);
     	console.log('REDIS_URL =', process.env.REDIS_URL);
+return {
         store: await redisStore({
           socket: {
             host: process.env.REDIS_HOST || 'localhost',
@@ -52,7 +53,8 @@ import { NotificationModule } from './notification/notification.module';
           },
           ttl: 3600, // 1 giờ (giây)
         }),
-      }),
+      },
+},
     }),
     ChatbotModule,
     RedisModule,
