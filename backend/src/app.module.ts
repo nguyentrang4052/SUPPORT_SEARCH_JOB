@@ -53,8 +53,8 @@ import { NotificationModule } from './notification/notification.module';
             },
             ttl: 3600, // 1 giờ (giây)
           }),
-        },
-},
+        };
+      },
     }),
     ChatbotModule,
     RedisModule,
