@@ -22,7 +22,6 @@ import { ChatHistoryModule } from './chatbot/chat-history/chat-history.module';
 import { CvAssistantModule } from './cv-assistant/cv-assistant.module';
 import { CvBuilderModule } from './cv-builder/cv-builder.module';
 import { NotificationModule } from './notification/notification.module';
-import { parse } from 'url';
 @Module({
   imports: [
     ConfigModule.forRoot({
