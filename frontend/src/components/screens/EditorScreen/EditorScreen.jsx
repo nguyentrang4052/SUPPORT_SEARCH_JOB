@@ -418,7 +418,7 @@ const EMPTY_CV_DATA = {
     activities: []
 };
 
-const API_BASE = 'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 // Helper gọi API trực tiếp
 async function callApi(endpoint, method, body) {
@@ -435,7 +435,7 @@ async function callApi(endpoint, method, body) {
     }
 
     const token = getToken();
-    const res = await fetch(`${API_BASE}${endpoint}`, {
+    const res = await fetch(`${API_URL}${endpoint}`, {
         method,
         headers: {
             'Content-Type': 'application/json',
@@ -717,7 +717,7 @@ export default function EditorScreen({ templateId, initialData, cvId, onBack, fo
             if (!cvId) return;
             try {
                 const token = getToken();
-                const res = await fetch(`${API_BASE}/cv-builder/detail/${cvId}`, {
+                const res = await fetch(`${API_URL}/cv-builder/detail/${cvId}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (!res.ok) throw new Error('Failed to load CV');
@@ -743,7 +743,7 @@ export default function EditorScreen({ templateId, initialData, cvId, onBack, fo
     const performSave = async (dataToSave, titles, order, config, name) => {
         try {
             const token = getToken();
-            const res = await fetch(`${API_BASE}/cv-builder/update/${cvId}`, {
+            const res = await fetch(`${API_URL}/cv-builder/update/${cvId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

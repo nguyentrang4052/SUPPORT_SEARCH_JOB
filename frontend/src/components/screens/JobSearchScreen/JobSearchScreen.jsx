@@ -5,7 +5,7 @@ import { getToken } from '../../../utils/auth';
 import './JobSearchScreen.css';
 import { useJobsSocket } from '../../../hook/useJobsSocket';
 
-const API = 'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 function LoginModal({ onClose }) {
   const navigate = useNavigate();
@@ -157,7 +157,7 @@ function JobSearchScreen() {
       if (keyword) params.set('keyword', keyword);
       if (activeFilters.source.length > 0) params.set('source', activeFilters.source[0]);
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      const res = await fetch(`${API}/jobs?${params}`, { headers });
+      const res = await fetch(`${API_URL}/jobs?${params}`, { headers });
       const data = await res.json();
       setBgJobs(data.data ?? []);
       setBgMeta(data.meta ?? null);
@@ -194,7 +194,7 @@ function JobSearchScreen() {
   const loadMyAlerts = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch(`${API}/job-alerts`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${API_URL}/job-alerts`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       setMyAlerts(Array.isArray(data) ? data : []);
     } catch { }
@@ -204,7 +204,7 @@ function JobSearchScreen() {
 
   useEffect(() => {
     if (!token) { setSavedJobIds(new Set()); return; }
-    fetch(`${API}/jobs/saved`, { headers: { Authorization: `Bearer ${token}` } })
+    fetch(`${API_URL}/jobs/saved`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
       .then(data => {
         const ids = new Set((Array.isArray(data) ? data : []).map(s => s.job.jobID));
@@ -216,10 +216,10 @@ function JobSearchScreen() {
   useEffect(() => {
     const loadStatic = () =>
       Promise.all([
-        fetch(`${API}/jobs/filter-options`).then(r => r.json()),
-        fetch(`${API}/common/locations`).then(r => r.json()),
-        fetch(`${API}/jobs/trending-keywords`).then(r => r.json()),
-        fetch(`${API}/companies/top`).then(r => r.json()),
+        fetch(`${API_URL}/jobs/filter-options`).then(r => r.json()),
+        fetch(`${API_URL}/common/locations`).then(r => r.json()),
+        fetch(`${API_URL}/jobs/trending-keywords`).then(r => r.json()),
+        fetch(`${API_URL}/companies/top`).then(r => r.json()),
       ])
         .then(([opts, provs, trending, companies]) => {
           setFilterOptions(opts);
@@ -240,8 +240,8 @@ function JobSearchScreen() {
     setLoadingDynamic(true);
     const source = activeFilters.source[0] ?? '';
     const url = source
-      ? `${API}/jobs/filter-by-source?source=${encodeURIComponent(source)}`
-      : `${API}/jobs/filter-by-source`;
+      ? `${API_URL}/jobs/filter-by-source?source=${encodeURIComponent(source)}`
+      : `${API_URL}/jobs/filter-by-source`;
     fetch(url)
       .then(r => r.json())
       .then(data => setDynamicFilters({ industries: data?.industries ?? [] }))
@@ -252,7 +252,7 @@ function JobSearchScreen() {
   useEffect(() => {
     if (sort !== 'match' || !token) return;
     setLoadingRecs(true);
-    fetch(`${API}/jobs/recommendations`, { headers: { Authorization: `Bearer ${token}` } })
+    fetch(`${API_URL}/jobs/recommendations`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
       .then(res => {
         const list = Array.isArray(res) ? res : (res.data ?? []);
@@ -277,7 +277,7 @@ function JobSearchScreen() {
       if (salaryMax > 0) params.set('salaryMax', String(salaryMax));
       activeFilters.locations.forEach(loc => params.append('locations', loc));
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      const res = await fetch(`${API}/jobs?${params}`, { headers });
+      const res = await fetch(`${API_URL}/jobs?${params}`, { headers });
       const data = await res.json();
       setJobs(prev => {
         const newData = data.data ?? [];
@@ -303,8 +303,8 @@ function JobSearchScreen() {
     loadStaticRef.current?.();
     const source = activeFilters.source[0] ?? '';
     const url = source
-      ? `${API}/jobs/filter-by-source?source=${encodeURIComponent(source)}`
-      : `${API}/jobs/filter-by-source`;
+      ? `${API_URL}/jobs/filter-by-source?source=${encodeURIComponent(source)}`
+      : `${API_URL}/jobs/filter-by-source`;
     fetch(url)
       .then(r => r.json())
       .then(data => setDynamicFilters({ industries: data?.industries ?? [] }))
@@ -317,7 +317,7 @@ function JobSearchScreen() {
 
   const trackBehavior = useCallback((jobID, action) => {
     if (!token) return;
-    fetch(`${API}/jobs/${jobID}/track`, {
+    fetch(`${API_URL}/jobs/${jobID}/track`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ action }),
@@ -326,7 +326,7 @@ function JobSearchScreen() {
 
   const openDetail = async (jobID) => {
     try {
-      const res = await fetch(`${API}/jobs/${jobID}`);
+      const res = await fetch(`${API_URL}/jobs/${jobID}`);
       const data = await res.json();
       setSelectedJob(data);
       setDetailOpen(true);
@@ -336,7 +336,7 @@ function JobSearchScreen() {
       document.body.style.overflow = 'hidden';
       trackBehavior(jobID, 'view');
       if (token) {
-        fetch(`${API}/jobs/${jobID}/match`, { headers: { Authorization: `Bearer ${token}` } })
+        fetch(`${API_URL}/jobs/${jobID}/match`, { headers: { Authorization: `Bearer ${token}` } })
           .then(r => r.json())
           .then(d => setMatchInfo(d))
           .catch(console.error);
@@ -366,7 +366,7 @@ function JobSearchScreen() {
     if (!token) { setShowLoginModal(true); return; }
     const isSaved = savedJobIds.has(jobID);
     try {
-      await fetch(`${API}/jobs/${jobID}/save`, {
+      await fetch(`${API_URL}/jobs/${jobID}/save`, {
         method: isSaved ? 'DELETE' : 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       });
@@ -386,7 +386,7 @@ function JobSearchScreen() {
     if (jobID) trackBehavior(jobID, 'apply');
     if (!selectedJob || selectedJob.jobID !== jobID) {
       try {
-        const res = await fetch(`${API}/jobs/${jobID}`);
+        const res = await fetch(`${API_URL}/jobs/${jobID}`);
         const data = await res.json();
         setSelectedJob(data);
       } catch (err) { console.error(err); }
@@ -400,7 +400,7 @@ function JobSearchScreen() {
     setCheckingMatch(true);
     setMatchError(null);
     try {
-      const res = await fetch(`${API}/jobs/${selectedJob.jobID}/match/check`, {
+      const res = await fetch(`${API_URL}/jobs/${selectedJob.jobID}/match/check`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -423,7 +423,7 @@ function JobSearchScreen() {
     if (!alertKeyword.trim()) return;
     setAlertLoading(true); setAlertMsg('');
     try {
-      const res = await fetch(`${API}/job-alerts`, {
+      const res = await fetch(`${API_URL}/job-alerts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ keyword: alertKeyword.trim() }),
@@ -442,7 +442,7 @@ function JobSearchScreen() {
 
   const handleRemoveAlert = async (kw) => {
     try {
-      await fetch(`${API}/job-alerts`, {
+      await fetch(`${API_URL}/job-alerts`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ keyword: kw }),
@@ -609,7 +609,7 @@ function JobSearchScreen() {
 
   useEffect(() => {
     if (!token) { setSearchHistory([]); return; }
-    fetch(`${API}/jobs/search-history`, { headers: { Authorization: `Bearer ${token}` } })
+    fetch(`${API_URL}/jobs/search-history`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
       .then(data => setSearchHistory(Array.isArray(data) ? data : []))
       .catch(console.error);
@@ -632,7 +632,7 @@ function JobSearchScreen() {
     if (!val.trim()) { setSuggestions([]); return; }
     suggestDebounceRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(`${API}/jobs/search-suggestions?q=${encodeURIComponent(val)}`);
+        const res = await fetch(`${API_URL}/jobs/search-suggestions?q=${encodeURIComponent(val)}`);
         const data = await res.json();
         setSuggestions(Array.isArray(data) ? data : []);
       } catch { setSuggestions([]); }
@@ -642,7 +642,7 @@ function JobSearchScreen() {
   const saveHistory = async (kw) => {
     if (!kw?.trim() || !token) return;
     try {
-      await fetch(`${API}/jobs/search-history`, {
+      await fetch(`${API_URL}/jobs/search-history`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ keyword: kw.trim() }),

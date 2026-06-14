@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getToken } from '../../../utils/auth';
 import './PricingScreen.css';
 
-const API = 'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 const PLAN_STYLES = {
   free: { tagline: 'Bắt đầu miễn phí', color: '#9A8D80', gradient: 'linear-gradient(135deg,#6B5E50,#9A8D80)', icon: '🌱', badge: null },
@@ -79,12 +79,12 @@ export default function PricingScreen() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const resPlans = await fetch(`${API}/subscriptions/plans`);
+      const resPlans = await fetch(`${API_URL}/subscriptions/plans`);
       const plansData = await resPlans.json();
       setPlans(Array.isArray(plansData) ? plansData : []);
 
       if (token) {
-        const resSub = await fetch(`${API}/subscriptions/current`, {
+        const resSub = await fetch(`${API_URL}/subscriptions/current`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (resSub.ok) setCurrentSub(await resSub.json());
@@ -92,13 +92,13 @@ export default function PricingScreen() {
         setCurrentSub(null);
       }
       if (token) {
-        const resQuota = await fetch(`${API}/subscriptions/quota`, {
+        const resQuota = await fetch(`${API_URL}/subscriptions/quota`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         if (resQuota.ok) setQuota(await resQuota.json())
       }
       if (token) {
-        const resHistory = await fetch(`${API}/subscriptions/history`, {
+        const resHistory = await fetch(`${API_URL}/subscriptions/history`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         if (resHistory.ok) {
@@ -144,7 +144,7 @@ export default function PricingScreen() {
     if (!window.confirm('Tắt tự động gia hạn? Gói sẽ hết hạn vào cuối chu kỳ hiện tại.')) return;
     setCancelLoading(true);
     try {
-      const res = await fetch(`${API}/subscriptions/cancel`, {
+      const res = await fetch(`${API_URL}/subscriptions/cancel`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });

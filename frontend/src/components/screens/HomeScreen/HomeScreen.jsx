@@ -6,7 +6,7 @@ import JobCard from '../../common/JobCard/JobCard'
 import { getToken } from '../../../utils/auth'
 import TrendDashboard from './TrendDashboard'
 
-const API = 'http://localhost:3000/api'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 const PLATFORMS = [
   { value: 'Tất cả', label: 'Tất cả', color: '#efa85c' },
@@ -150,7 +150,7 @@ export default function HomeScreen() {
   }
 
   useEffect(() => {
-    fetch(`${API}/common/locations`)
+    fetch(`${API_URL}/common/locations`)
       .then(r => r.json())
       .then(data => setLocations(data))
       .catch(console.error)
@@ -206,7 +206,7 @@ export default function HomeScreen() {
   useEffect(() => {
     setLoadingIndustries(true)
     setCatPage(0)
-    fetch(`${API}/jobs/filter-by-source?source=${encodeURIComponent(activePlatform)}`)
+    fetch(`${API_URL}/jobs/filter-by-source?source=${encodeURIComponent(activePlatform)}`)
       .then(r => r.json())
       .then(data => {
         const raw = data?.industries ?? []
@@ -244,7 +244,7 @@ export default function HomeScreen() {
         params.set('source', activePlatformRef.current)
 
       const headers = tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : {}
-      const res = await fetch(`${API}/jobs?${params}`, { headers })
+      const res = await fetch(`${API_URL}/jobs?${params}`, { headers })
       const data = await res.json()
       setJobs(data.data ?? [])
       setMeta(data.meta ?? { total: 0, totalPages: 1 })
@@ -272,7 +272,7 @@ export default function HomeScreen() {
   useEffect(() => {
     if (!token) { setRecommendations([]); setRecQuota(null); return }
     setLoadingRecs(true)
-    fetch(`${API}/jobs/recommendations`, {
+    fetch(`${API_URL}/jobs/recommendations`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(r => r.json())
@@ -289,7 +289,7 @@ export default function HomeScreen() {
     if (!token || refreshingRecs) return
     setRefreshingRecs(true)
     try {
-      const res = await fetch(`${API}/jobs/recommendations/refresh`, {
+      const res = await fetch(`${API_URL}/jobs/recommendations/refresh`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -311,7 +311,7 @@ export default function HomeScreen() {
   useEffect(() => {
     if (!token) { setStats(null); return }
     setLoadingStats(true)
-    fetch(`${API}/jobs/stats`, { headers: { Authorization: `Bearer ${token}` } })
+    fetch(`${API_URL}/jobs/stats`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
       .then(setStats)
       .catch(console.error)
@@ -320,7 +320,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     if (!token) { setSavedJobIds(new Set()); return }
-    fetch(`${API}/jobs/saved`, { headers: { Authorization: `Bearer ${token}` } })
+    fetch(`${API_URL}/jobs/saved`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
       .then(data => {
         const ids = new Set((Array.isArray(data) ? data : []).map(s => s.job.jobID))
@@ -337,7 +337,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     if (!token) { setSearchHistory([]); return }
-    fetch(`${API}/jobs/search-history`, {
+    fetch(`${API_URL}/jobs/search-history`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(r => r.json())
@@ -357,7 +357,7 @@ export default function HomeScreen() {
     }
     debounceRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(`${API}/jobs/search-suggestions?q=${encodeURIComponent(val)}`)
+        const res = await fetch(`${API_URL}/jobs/search-suggestions?q=${encodeURIComponent(val)}`)
         const data = await res.json()
         setSuggestions(Array.isArray(data) ? data : [])
       } catch { setSuggestions([]) }
@@ -366,7 +366,7 @@ export default function HomeScreen() {
 
   const trackBehavior = useCallback((jobID, action) => {
     if (!token) return
-    fetch(`${API}/jobs/${jobID}/track`, {
+    fetch(`${API_URL}/jobs/${jobID}/track`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ action }),
@@ -396,12 +396,12 @@ export default function HomeScreen() {
     })
     if (keywordRef.current?.trim() && token) {
       try {
-        await fetch(`${API}/jobs/search-history`, {
+        await fetch(`${API_URL}/jobs/search-history`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({ keyword: keywordRef.current.trim() }),
         })
-        const res = await fetch(`${API}/jobs/search-history`, {
+        const res = await fetch(`${API_URL}/jobs/search-history`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         const data = await res.json()

@@ -4,7 +4,7 @@ import './JobDetailScreen.css'
 import Badge from '../../common/Badge/Badge'
 import { getToken } from '../../../utils/auth'
 
-const API = 'http://localhost:3000/api'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 function JobDetailScreen({ jobId, onBack, token: tokenProp, onCompanyClick }) {
   const params = useParams()
@@ -35,7 +35,7 @@ function JobDetailScreen({ jobId, onBack, token: tokenProp, onCompanyClick }) {
   useEffect(() => {
     if (!id) return
     setLoading(true)
-    fetch(`${API}/jobs/${id}`)
+    fetch(`${API_URL}/jobs/${id}`)
       .then(r => r.json())
       .then(setJob)
       .catch(console.error)
@@ -44,7 +44,7 @@ function JobDetailScreen({ jobId, onBack, token: tokenProp, onCompanyClick }) {
 
   useEffect(() => {
     if (!token || !id) return
-    fetch(`${API}/jobs/saved`, { headers: { Authorization: `Bearer ${token}` } })
+    fetch(`${API_URL}/jobs/saved`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.ok ? r.json() : [])
       .then(data => {
         const list = Array.isArray(data) ? data : (data?.data ?? [])
@@ -56,7 +56,7 @@ function JobDetailScreen({ jobId, onBack, token: tokenProp, onCompanyClick }) {
 
   useEffect(() => {
     if (!token || !id) return
-    fetch(`${API}/jobs/${id}/match`, {
+    fetch(`${API_URL}/jobs/${id}/match`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(r => r.json())
@@ -69,7 +69,7 @@ function JobDetailScreen({ jobId, onBack, token: tokenProp, onCompanyClick }) {
     setCheckingMatch(true)
     setMatchError(null)
     try {
-      const res = await fetch(`${API}/jobs/${id}/match/check`, {
+      const res = await fetch(`${API_URL}/jobs/${id}/match/check`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -90,7 +90,7 @@ function JobDetailScreen({ jobId, onBack, token: tokenProp, onCompanyClick }) {
   const handleSave = async () => {
     if (!token) { setShowLoginModal(true); return }
     try {
-      await fetch(`${API}/jobs/${id}/save`, {
+      await fetch(`${API_URL}/jobs/${id}/save`, {
         method: saved ? 'DELETE' : 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       })

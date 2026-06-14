@@ -5,7 +5,7 @@ import CVRenderer from "./../../cv-templates/CVRenderer"
 import { getToken } from '../../../utils/auth'
 import ReturnDialog from "../ReturnDialog/ReturnDialog"
 
-const API = "http://localhost:3000/api";
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 const THUMB_COMPONENTS = {
   classic: ({ accent }) => (
@@ -295,7 +295,7 @@ export default function TemplatePickerScreen({ onSelect, existingCVs, onBack }) 
         formData.append('files', file);
       });
 
-      const response = await fetch(`${API}/cv-analyzer/analyze`, {
+      const response = await fetch(`${API_URL}/cv-analyzer/analyze`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,

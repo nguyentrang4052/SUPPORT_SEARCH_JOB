@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom"
 import { getToken } from '../../../utils/auth'
 import JobCard from '../../common/JobCard/JobCard'
 
-const API = 'http://localhost:3000/api'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 // const COLLECTIONS = ['Tất cả', 'Việc IT', 'Remote', 'Chưa phân loại']
 
@@ -40,7 +40,7 @@ export default function viewedJobsScreen({ onNavigate }) {
       return
     }
 
-    fetch(`${API}/jobs/viewed?page=${page}&limit=9`, {
+    fetch(`${API_URL}/jobs/viewed?page=${page}&limit=9`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(res => res.json())
@@ -78,7 +78,7 @@ export default function viewedJobsScreen({ onNavigate }) {
   // tracking
   const trackBehavior = useCallback((jobID, action) => {
     if (!token) return
-    fetch(`${API}/jobs/${jobID}/track`, {
+    fetch(`${API_URL}/jobs/${jobID}/track`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 import { getToken } from '../../../utils/auth'
 import { useJobsSocket } from '../../../hook/useJobsSocket'
 
-const API = 'http://localhost:3000/api'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 const COMPANY_SIZES = [
   { value: 'Dưới 10 người', label: 'Dưới 10 người' },
@@ -127,8 +127,8 @@ export default function CompaniesScreen() {
 
   useEffect(() => {
     Promise.all([
-      fetch(`${API}/companies/top`).then(r => r.json()),
-      fetch(`${API}/common/locations`).then(r => r.json()),
+      fetch(`${API_URL}/companies/top`).then(r => r.json()),
+      fetch(`${API_URL}/common/locations`).then(r => r.json()),
     ])
       .then(([top, provs]) => {
         setTopCompanies(Array.isArray(top) ? top : [])
@@ -145,7 +145,7 @@ export default function CompaniesScreen() {
     const activeSize = Object.entries(checkedSize).find(([, v]) => v)?.[0]
     if (activeSize) params.set('size', activeSize)
 
-    fetch(`${API}/companies?${params}`)
+    fetch(`${API_URL}/companies?${params}`)
       .then(r => r.json())
       .then(data => {
         setCompanies(data.data ?? [])
@@ -233,7 +233,7 @@ export default function CompaniesScreen() {
 
   useEffect(() => {
     if (token) {
-      fetch(`${API}/companies/search-history`, {
+      fetch(`${API_URL}/companies/search-history`, {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then(r => r.json())
@@ -252,7 +252,7 @@ export default function CompaniesScreen() {
     if (!kw?.trim()) return
     if (token) {
       try {
-        await fetch(`${API}/companies/search-history`, {
+        await fetch(`${API_URL}/companies/search-history`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -292,7 +292,7 @@ export default function CompaniesScreen() {
     if (!val.trim()) { setSuggestions([]); return }
     suggestDebounceRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(`${API}/companies/suggestions?q=${encodeURIComponent(val)}`)
+        const res = await fetch(`${API_URL}/companies/suggestions?q=${encodeURIComponent(val)}`)
         const data = await res.json()
         setSuggestions(Array.isArray(data) ? data : [])
       } catch { setSuggestions([]) }
@@ -332,7 +332,7 @@ export default function CompaniesScreen() {
   )
 
   useJobsSocket(useCallback(() => {
-    fetch(`${API}/companies/top`)
+    fetch(`${API_URL}/companies/top`)
       .then(r => r.json())
       .then(data => setTopCompanies(Array.isArray(data) ? data : []))
       .catch(console.error)

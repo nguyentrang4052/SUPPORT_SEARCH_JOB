@@ -5,7 +5,7 @@ import TemplatePickerScreen from "./../TemplatePickerScreen/TemplatePickerScreen
 import EditorScreen from "./../EditorScreen/EditorScreen";
 import { getToken } from "../../../utils/auth";
 
-const API_BASE = 'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 const DEFAULT_SECTION_TITLES = {
   summary: "Mục tiêu nghề nghiệp",
   experiences: "Kinh nghiệm làm việc",
@@ -43,7 +43,7 @@ export default function CreatedCVScreen({ initialScreen = "myCV" }) {
 
   const loadCVList = async () => {
     try {
-      const res = await fetch(`${API_BASE}/cv-builder/list`, {
+      const res = await fetch(`${API_URL}/cv-builder/list`, {
         headers: getAuthHeaders()
       });
       if (!res.ok) throw new Error('Failed to fetch CV list');
@@ -63,7 +63,7 @@ export default function CreatedCVScreen({ initialScreen = "myCV" }) {
   };
 
   const createCV = async (name, templateId, cvData) => {
-    const res = await fetch(`${API_BASE}/cv-builder/create`, {
+    const res = await fetch(`${API_URL}/cv-builder/create`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify({ name, templateId, data: cvData })
@@ -73,7 +73,7 @@ export default function CreatedCVScreen({ initialScreen = "myCV" }) {
   };
 
   const updateCV = async (id, name, cvData) => {
-    const res = await fetch(`${API_BASE}/cv-builder/update/${id}`, {
+    const res = await fetch(`${API_URL}/cv-builder/update/${id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify({ name, data: cvData })
@@ -83,7 +83,7 @@ export default function CreatedCVScreen({ initialScreen = "myCV" }) {
   };
 
   const deleteCV = async (id) => {
-    const res = await fetch(`${API_BASE}/cv-builder/delete/${id}`, {
+    const res = await fetch(`${API_URL}/cv-builder/delete/${id}`, {
       method: 'DELETE',
       headers: getAuthHeaders()
     });
@@ -91,7 +91,7 @@ export default function CreatedCVScreen({ initialScreen = "myCV" }) {
   };
 
   const getCVDetail = async (id) => {
-    const res = await fetch(`${API_BASE}/cv-builder/detail/${id}`, {
+    const res = await fetch(`${API_URL}/cv-builder/detail/${id}`, {
       headers: getAuthHeaders()
     });
     if (!res.ok) throw new Error('Detail failed');

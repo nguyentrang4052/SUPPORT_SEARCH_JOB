@@ -53,7 +53,7 @@ const groupByDate = (notifications) => {
 
 function NotificationsScreen({ notifContext }) {
   const token = localStorage.getItem('token') || sessionStorage.getItem('token')
-  const API = 'http://localhost:3000/api'
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
   const { notifications, unreadCount, markAsRead, markAllAsRead, deleteOne } = notifContext
   const navigate = useNavigate()
@@ -93,7 +93,7 @@ function NotificationsScreen({ notifContext }) {
 
   useEffect(() => {
     if (!token) return
-    fetch(`${API}/notifications/email-pref`, {
+    fetch(`${API_URL}/notifications/email-pref`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(r => {
@@ -116,7 +116,7 @@ function NotificationsScreen({ notifContext }) {
     setSavingPref(true)
     const next = !emailNotification
     try {
-      await fetch(`${API}/notifications/email-pref`, {
+      await fetch(`${API_URL}/notifications/email-pref`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

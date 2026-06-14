@@ -6,7 +6,7 @@ import Topbar from '../../layout/Topbar/Topbar'
 import Badge from '../../common/Badge/Badge'
 import { getToken } from '../../../utils/auth'
 
-const API = 'http://localhost:3000/api'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 const CONNECTED_ACCOUNTS = [
   { name: 'TopCV', code: 'T', color: '#00B14F', connected: true },
   { name: 'CareerLink', code: 'C', color: '#D0392A', connected: true },
@@ -26,7 +26,7 @@ function ImportCVModal({ onClose, onImport, authHeaders }) {
 
   useEffect(() => {
     setLoadingLocal(true);
-    fetch(`${API}/cv-builder/list`, { headers: authHeaders })
+    fetch(`${API_URL}/cv-builder/list`, { headers: authHeaders })
       .then(r => r.ok ? r.json() : [])
       .then(data => {
         setLocalCVs(data.map(cv => ({ ...cv, type: 'local' })));
@@ -37,7 +37,7 @@ function ImportCVModal({ onClose, onImport, authHeaders }) {
 
   useEffect(() => {
     setLoadingAnalyzed(true)
-    fetch(`${API}/cv-analyzer/history`, { headers: authHeaders })
+    fetch(`${API_URL}/cv-analyzer/history`, { headers: authHeaders })
       .then(r => r.ok ? r.json() : { data: [] })
       .then(res => setAnalyzedCVs(res.data || []))
       .catch(() => { })
@@ -238,7 +238,7 @@ function AnalyzedCVPreview({ cv, authHeaders }) {
       return
     }
     // Thử fetch detail endpoint
-    fetch(`${API}/cv-analyzer/detail/${cv.id}`, { headers: authHeaders })
+    fetch(`${API_URL}/cv-analyzer/detail/${cv.id}`, { headers: authHeaders })
       .then(r => r.ok ? r.json() : null)
       .then(res => {
         if (res?.data?.result) {
@@ -337,7 +337,7 @@ function AnalyzedCVPreview({ cv, authHeaders }) {
   )
 }
 
-// ─── Preview CV tự tạo (dùng dữ liệu từ API) ────────────────────────────────
+// ─── Preview CV tự tạo (dùng dữ liệu từ API_URL) ────────────────────────────────
 function LocalCVPreview({ cv }) {
   // Dữ liệu CV được lưu trong cv.data.cvData (backend trả về)
   const cvData = cv.data?.cvData || {};
@@ -488,7 +488,7 @@ function ProfileScreen({ onNavigate, cvList: cvListProp = [] }) {
     if (!token) { setLoading(false); return }
     if (syncForm) setLoading(true)
     try {
-      const res = await fetch(`${API}/profile/me`, { headers: authRef.current })
+      const res = await fetch(`${API_URL}/profile/me`, { headers: authRef.current })
       if (!res.ok) throw new Error('Unauthorized')
       const data = await res.json()
       setProfile(data)
@@ -518,14 +518,14 @@ function ProfileScreen({ onNavigate, cvList: cvListProp = [] }) {
 
   const fetchStats = useCallback(async (userID) => {
     try {
-      const res = await fetch(`${API}/profile/${userID}/stats`, { headers: authRef.current })
+      const res = await fetch(`${API_URL}/profile/${userID}/stats`, { headers: authRef.current })
       setStats(await res.json())
     } catch (err) { console.error('fetchStats:', err) }
   }, [])
 
   const fetchAllSkills = useCallback(async () => {
     try {
-      const res = await fetch(`${API}/profile/skills/all`)
+      const res = await fetch(`${API_URL}/profile/skills/all`)
       const data = await res.json()
       setAllSkills(Array.isArray(data) ? data : [])
     } catch (err) { console.error('fetchAllSkills:', err) }
@@ -533,7 +533,7 @@ function ProfileScreen({ onNavigate, cvList: cvListProp = [] }) {
 
   const fetchIndustries = useCallback(async () => {
     try {
-      const res = await fetch(`${API}/industries`)
+      const res = await fetch(`${API_URL}/industries`)
       const data = await res.json()
       setIndustries(Array.isArray(data) ? data : [])
     } catch (err) { console.error('fetchIndustries:', err) }
@@ -564,7 +564,7 @@ function ProfileScreen({ onNavigate, cvList: cvListProp = [] }) {
 
   useEffect(() => {
     if (!profile?.userID) return
-    fetch(`${API}/profile/${profile.userID}/insights`, { headers: authRef.current })
+    fetch(`${API_URL}/profile/${profile.userID}/insights`, { headers: authRef.current })
       .then(r => r.json())
       .then(data => setAiData(data))
       .catch(console.error)
@@ -587,14 +587,14 @@ function ProfileScreen({ onNavigate, cvList: cvListProp = [] }) {
     const formData = new FormData()
     formData.append('file', file)
     try {
-      const res = await fetch(`${API}/profile/${profile.userID}/avatar`, {
+      const res = await fetch(`${API_URL}/profile/${profile.userID}/avatar`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       })
       if (!res.ok) throw new Error()
 
-      const updatedRes = await fetch(`${API}/profile/me`, { headers: authRef.current })
+      const updatedRes = await fetch(`${API_URL}/profile/me`, { headers: authRef.current })
       const updatedData = await updatedRes.json()
 
       setProfile(updatedData)
@@ -607,13 +607,13 @@ function ProfileScreen({ onNavigate, cvList: cvListProp = [] }) {
   const handleRemoveAvatar = async () => {
     if (!profile?.userID) return
     try {
-      const res = await fetch(`${API}/profile/${profile.userID}/avatar`, {
+      const res = await fetch(`${API_URL}/profile/${profile.userID}/avatar`, {
         method: 'DELETE',
         headers: authRef.current,
       })
       if (!res.ok) throw new Error()
 
-      const updatedRes = await fetch(`${API}/profile/me`, { headers: authRef.current })
+      const updatedRes = await fetch(`${API_URL}/profile/me`, { headers: authRef.current })
       const updatedData = await updatedRes.json()
 
       setProfile(updatedData)
@@ -627,7 +627,7 @@ function ProfileScreen({ onNavigate, cvList: cvListProp = [] }) {
     setSaving(true); setSaveMsg('')
     try {
       const [r1, r2] = await Promise.all([
-        fetch(`${API}/profile/${profile.userID}`, {
+        fetch(`${API_URL}/profile/${profile.userID}`, {
           method: 'PUT',
           headers: authRef.current,
           body: JSON.stringify({
@@ -638,7 +638,7 @@ function ProfileScreen({ onNavigate, cvList: cvListProp = [] }) {
             address: personalForm.address || null,
           }),
         }),
-        fetch(`${API}/profile/${profile.userID}/user-profile`, {
+        fetch(`${API_URL}/profile/${profile.userID}/user-profile`, {
           method: 'PUT',
           headers: authRef.current,
           body: JSON.stringify({
@@ -654,13 +654,13 @@ function ProfileScreen({ onNavigate, cvList: cvListProp = [] }) {
       if (!r1.ok || !r2.ok) throw new Error('Save failed')
       setSaveMsg('✓ Đã lưu thành công')
 
-      const updatedRes = await fetch(`${API}/profile/me`, { headers: authRef.current })
+      const updatedRes = await fetch(`${API_URL}/profile/me`, { headers: authRef.current })
       const updatedData = await updatedRes.json()
       setProfile(updatedData)
 
       await Promise.all([
         fetchStats(updatedData.userID),
-        fetch(`${API}/profile/${updatedData.userID}/insights`, { headers: authRef.current })
+        fetch(`${API_URL}/profile/${updatedData.userID}/insights`, { headers: authRef.current })
           .then(r => r.json())
           .then(data => setAiData(data))
           .catch(console.error),
@@ -678,7 +678,7 @@ function ProfileScreen({ onNavigate, cvList: cvListProp = [] }) {
   const handleAddSkill = async (skill) => {
     if (!profile?.userID) return
     try {
-      await fetch(`${API}/profile/${profile.userID}/skills/${skill.skillID}`, {
+      await fetch(`${API_URL}/profile/${profile.userID}/skills/${skill.skillID}`, {
         method: 'POST', headers: authRef.current,
       })
       setSkillSearch(''); setShowSkillDropdown(false)
@@ -689,7 +689,7 @@ function ProfileScreen({ onNavigate, cvList: cvListProp = [] }) {
   const handleRemoveSkill = async (skillID) => {
     if (!profile?.userID) return
     try {
-      await fetch(`${API}/profile/${profile.userID}/skills/${skillID}`, {
+      await fetch(`${API_URL}/profile/${profile.userID}/skills/${skillID}`, {
         method: 'DELETE', headers: authRef.current,
       })
       fetchProfile(false)
@@ -733,7 +733,7 @@ function ProfileScreen({ onNavigate, cvList: cvListProp = [] }) {
 
     try {
       if (type === 'analyzed') {
-        const res = await fetch(`${API}/cv-analyzer/map-to-profile/${cv.id}`, {
+        const res = await fetch(`${API_URL}/cv-analyzer/map-to-profile/${cv.id}`, {
           method: 'POST',
           headers: authRef.current,
         })
@@ -776,7 +776,7 @@ function ProfileScreen({ onNavigate, cvList: cvListProp = [] }) {
           typeof s === 'string' ? { category: s, items: s } : { category: s.category || '', items: s.items || '' }
         )
 
-        const res = await fetch(`${API}/cv-analyzer/map-from-local`, {
+        const res = await fetch(`${API_URL}/cv-analyzer/map-from-local`, {
           method: 'POST',
           headers: authRef.current,
           body: JSON.stringify({
@@ -865,7 +865,7 @@ function ProfileScreen({ onNavigate, cvList: cvListProp = [] }) {
                       {profile?.avatar
                         ? (
                           <img
-                            src={`${API}${profile.avatar}`}
+                            src={`${API_URL}${profile.avatar}`}
                             alt="avatar"
                             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                           />

@@ -6,6 +6,7 @@ const STATUS_META = {
     stable: { icon: '⚖️', label: 'Stable', color: '#2E6040', bg: '#E0F0E6', border: '#A0CCA8' },
     declining: { icon: '📉', label: 'Declining', color: '#9A8D80', bg: '#F5F0E8', border: '#DDD6C6' },
 }
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 export default function TrendDashboard({ onIndustryClick }) {
     const [trends, setTrends] = useState([])
@@ -19,7 +20,7 @@ export default function TrendDashboard({ onIndustryClick }) {
     const containerRef = useRef(null)
 
     useEffect(() => {
-        fetch('http://localhost:3000/api/jobs/industry-trends')
+        fetch(`${API_URL}/jobs/industry-trends`)
             .then(r => r.json())
             .then(data => { setTrends(Array.isArray(data) ? data : []); setLoading(false) })
             .catch(() => setLoading(false))

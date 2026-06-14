@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { getToken } from '../../../utils/auth'
 import './PaymentScreen.css'
 
-const API = 'http://localhost:3000/api'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 const PLAN_COLORS = { free: '#9A8D80', pro: '#C0412A', elite: '#D4820A' }
 const STATUS_CONFIG = {
   success: { label: 'Thành công', cls: 'success' },
@@ -31,9 +31,9 @@ export default function PaymentScreen() {
     setLoading(true)
     try {
       const [resPlans, resSub, resHistory] = await Promise.all([
-        fetch(`${API}/subscriptions/plans`),
-        token ? fetch(`${API}/subscriptions/current`, { headers: { Authorization: `Bearer ${token}` } }) : Promise.resolve(null),
-        token ? fetch(`${API}/subscriptions/history`, { headers: { Authorization: `Bearer ${token}` } }) : Promise.resolve(null),
+        fetch(`${API_URL}/subscriptions/plans`),
+        token ? fetch(`${API_URL}/subscriptions/current`, { headers: { Authorization: `Bearer ${token}` } }) : Promise.resolve(null),
+        token ? fetch(`${API_URL}/subscriptions/history`, { headers: { Authorization: `Bearer ${token}` } }) : Promise.resolve(null),
       ])
       const plansData = await resPlans.json()
       setPlans(Array.isArray(plansData) ? plansData : [])

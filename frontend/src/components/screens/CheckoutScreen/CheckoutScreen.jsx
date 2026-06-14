@@ -4,7 +4,7 @@ import { getToken, fetchMe } from '../../../utils/auth'
 import { QRCodeSVG } from 'qrcode.react'
 import './CheckoutScreen.css'
 
-const API = 'http://localhost:3000/api'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 const PLAN_COLORS = { free: '#9A8D80', pro: '#C0412A', elite: '#D4820A' }
 const PLAN_ICONS = { free: '🌱', pro: '⚡', elite: '👑' }
 
@@ -158,7 +158,7 @@ export default function CheckoutScreen() {
         if (!transactionRef || !countdownActive || paymentVerified) return
         const interval = setInterval(async () => {
             try {
-                const res = await fetch(`${API}/subscriptions/confirm-payment`, {
+                const res = await fetch(`${API_URL}/subscriptions/confirm-payment`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ transactionRef }),
@@ -192,7 +192,7 @@ export default function CheckoutScreen() {
         setCheckoutUrl('')
         setTransactionRef('')
         try {
-            const res = await fetch(`${API}/subscriptions/subscribe`, {
+            const res = await fetch(`${API_URL}/subscriptions/subscribe`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ planName, billing }),
@@ -226,7 +226,7 @@ export default function CheckoutScreen() {
         setRefundLoading(true)
         setRefundError('')
         try {
-            const res = await fetch(`${API}/subscriptions/refund`, {
+            const res = await fetch(`${API_URL}/subscriptions/refund`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ reason, accountNumber, accountName, bankName }),

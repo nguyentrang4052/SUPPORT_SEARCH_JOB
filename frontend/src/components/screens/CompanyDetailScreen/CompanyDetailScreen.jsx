@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import './CompanyDetailScreen.css'
 import Header from '../../layout/Header/Header'
 
-const API = 'http://localhost:3000/api'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 const JOBS_PER_PAGE = 10
 
 function matchCls(n) { return n >= 85 ? 'mc-hi' : n >= 70 ? 'mc-md' : 'mc-lo' }
@@ -16,8 +16,8 @@ function daysLeft(deadline) {
   return `Còn ${days} ngày (${formatted})`
 }
 
-function buildJobList(apiJobs = []) {
-  return apiJobs.map((j) => ({
+function buildJobList(API_URLJobs = []) {
+  return API_URLJobs.map((j) => ({
     id: j.jobID,
     title: j.title,
     type: j.jobType ?? 'Onsite',
@@ -161,7 +161,7 @@ export default function CompanyDetailScreen({ company, onBack, token, jobBasePat
   const navigate = useNavigate()
 
   const [tab, setTab] = useState('overview')
-  const [apiData, setApiData] = useState(null)
+  const [API_URLData, setAPI_URLData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [matchMap, setMatchMap] = useState({})
   const [savedJobIds, setSavedJobIds] = useState(new Set())
@@ -178,20 +178,20 @@ export default function CompanyDetailScreen({ company, onBack, token, jobBasePat
     if (!companyId) return
     setLoading(true)
     setTab('overview')
-    setApiData(null)
+    setAPI_URLData(null)
     setMatchMap({})
     setJobSearch('')
     setJobPage(1)
 
     const headers = token ? { Authorization: `Bearer ${token}` } : {}
     Promise.all([
-      fetch(`${API}/companies/${companyId}`).then(r => r.json()),
+      fetch(`${API_URL}/companies/${companyId}`).then(r => r.json()),
       token
-        ? fetch(`${API}/jobs/recommendations`, { headers }).then(r => r.json()).catch(() => [])
+        ? fetch(`${API_URL}/jobs/recommendations`, { headers }).then(r => r.json()).catch(() => [])
         : Promise.resolve([]),
     ])
       .then(([companyData, recs]) => {
-        setApiData(companyData)
+        setAPI_URLData(companyData)
         const map = {}
         if (Array.isArray(recs)) recs.forEach(r => { map[r.jobID] = r.matchPercent })
         setMatchMap(map)
@@ -202,7 +202,7 @@ export default function CompanyDetailScreen({ company, onBack, token, jobBasePat
 
   useEffect(() => {
     if (!token) { setSavedJobIds(new Set()); return }
-    fetch(`${API}/jobs/saved`, { headers: { Authorization: `Bearer ${token}` } })
+    fetch(`${API_URL}/jobs/saved`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
       .then(data => {
         const ids = new Set((Array.isArray(data) ? data : []).map(s => s.job?.jobID ?? s.jobID))
@@ -221,13 +221,13 @@ export default function CompanyDetailScreen({ company, onBack, token, jobBasePat
 
   if (!company) return null
 
-  const name = apiData?.name ?? company.name ?? ''
-  const location = apiData?.location ?? company.location ?? 'Việt Nam'
-  const size = apiData?.size ?? company.size ?? 'Chưa cập nhật nhân sự'
-  const profile = apiData?.profile ?? ''
-  const jobCount = apiData?.jobCount ?? company.jobs ?? 0
-  const logo = apiData?.logo ?? company.logo ?? null
-  const website = apiData?.website ?? company.website ?? null
+  const name = API_URLData?.name ?? company.name ?? ''
+  const location = API_URLData?.location ?? company.location ?? 'Việt Nam'
+  const size = API_URLData?.size ?? company.size ?? 'Chưa cập nhật nhân sự'
+  const profile = API_URLData?.profile ?? ''
+  const jobCount = API_URLData?.jobCount ?? company.jobs ?? 0
+  const logo = API_URLData?.logo ?? company.logo ?? null
+  const website = API_URLData?.website ?? company.website ?? null
   const logoColor = company.logoColor ?? 'linear-gradient(135deg,#1565C0,#1E88E5)'
   const cover = company.cover ?? 'linear-gradient(135deg,#1565C0,#42A5F5)'
   const tags = company.tags ?? []
@@ -235,7 +235,7 @@ export default function CompanyDetailScreen({ company, onBack, token, jobBasePat
   const about = profile || `${name} là một trong những công ty hàng đầu${industry ? ` trong lĩnh vực ${industry}` : ''}.`
   const websiteDomain = website ? website.replace(/^https?:\/\//, '').split('/')[0] : null
 
-  const allJobs = buildJobList(apiData?.jobs ?? []).map(j => ({ ...j, match: matchMap[j.id] ?? null }))
+  const allJobs = buildJobList(API_URLData?.jobs ?? []).map(j => ({ ...j, match: matchMap[j.id] ?? null }))
 
   const filteredJobs = jobSearch.trim()
     ? allJobs.filter(j =>
@@ -268,7 +268,7 @@ export default function CompanyDetailScreen({ company, onBack, token, jobBasePat
     if (!token) { setShowLogin(true); return }
     const isSaved = savedJobIds.has(jobId)
     try {
-      await fetch(`${API}/jobs/${jobId}/save`, {
+      await fetch(`${API_URL}/jobs/${jobId}/save`, {
         method: isSaved ? 'DELETE' : 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       })
@@ -283,7 +283,7 @@ export default function CompanyDetailScreen({ company, onBack, token, jobBasePat
 
   const trackBehavior = (jobId, action) => {
     if (!token) return
-    fetch(`${API}/jobs/${jobId}/track`, {
+    fetch(`${API_URL}/jobs/${jobId}/track`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ action }),
