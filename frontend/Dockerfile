@@ -17,4 +17,6 @@ RUN npm install -g serve
 
 COPY --from=builder /frontend/dist ./dist
 
-CMD serve -s dist -l $PORT
+EXPOSE 5173
+
+CMD ["serve", "-s", "dist", "-l", "5173"]
